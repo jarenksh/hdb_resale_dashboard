@@ -33,8 +33,15 @@ def sort_data(data, sort_by_price, sort_by_date):
         data = data.sort_values(by='sold_year_month', ascending=True)
     return data
 
+def calculate_monthly_installment(loan_amount, interest_rate, tenure_years):
+    monthly_rate = interest_rate / 100 / 12
+    num_payments = tenure_years * 12
+    monthly_installment = (loan_amount * monthly_rate * (1 + monthly_rate)**num_payments) / ((1 + monthly_rate)**num_payments - 1)
+    return monthly_installment
+
 # Main Streamlit app
-def main():
+#change to property transaction dashboard
+def property_transact():
     # Load and process data on the server-side
     data = load_and_process_data()
 
@@ -85,6 +92,34 @@ def main():
             </p>
         </div>
         """, unsafe_allow_html=True)
+
+def mortgage_calculator():
+    st.title("Mortgage Calculator")
+    
+    loan_amount = st.number_input("Loan Amount ($)", min_value=0.0, value=100000.0, step=1000.0)
+    interest_rate = st.number_input("Annual Interest Rate (%)", min_value=0.0, max_value=20.0, value=3.0, step=0.1)
+    tenure_years = st.number_input("Loan Tenure (Years)", min_value=1, max_value=35, value=30, step=1)
+
+    if st.button("Calculate"):
+        monthly_installment = calculate_monthly_installment(loan_amount, interest_rate, tenure_years)
+        st.success(f"Your estimated monthly installment is: ${monthly_installment:.2f}")
+
+        # Additional information
+        total_payment = monthly_installment * tenure_years * 12
+        total_interest = total_payment - loan_amount
+        
+        st.write(f"Total amount paid over {tenure_years} years: ${total_payment:.2f}")
+        st.write(f"Total interest paid: ${total_interest:.2f}")
+
+def main():
+    st.sidebar.title("Navigation")
+    tabs = ["Property Dashboard", "Mortgage Calculator"]
+    choice = st.sidebar.radio("Select a tab:", tabs)
+
+    if choice == "Property Dashboard":
+        property_transact()
+    elif choice == "Mortgage Calculator":
+        mortgage_calculator()
 
 if __name__ == "__main__":
     main()
